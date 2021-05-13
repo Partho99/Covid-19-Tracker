@@ -1,15 +1,71 @@
+import React from "react";
+import numeral from "numeral";
+import { Circle, Popup } from "react-leaflet";
+
+const casesTypeColors = {
+    cases: {
+        hex: "#CC1034",
+        // rgb: "rgb(204, 16, 52)",
+        // half_op: "rgba(204, 16, 52, 0.5)",
+        multiplier: 80,
+    },
+    recovered: {
+        hex: "#7dd71d",
+        // rgb: "rgb(125, 215, 29)",
+        // half_op: "rgba(125, 215, 29, 0.5)",
+        multiplier: 120,
+    },
+    deaths: {
+        hex: "#fb4443",
+        // rgb: "rgb(251, 68, 67)",
+        // half_op: "rgba(251, 68, 67, 0.5)",
+        multiplier: 200,
+    },
+};
+
 export const sortData = (data) => {
-    const sortedData = [...data];
-    sortedData.sort((x, y) => {
-
-      /*  No, -1, 0, and 1 in a comparison function are used to tell the caller how the first value should be sorted in relation to the second one.
-        -1 means the first goes before the second, 1 means it goes after, and 0 means they're equivalent.
-        The sort function uses the comparisons in the function you pass it to sort the function.
-        For instance, if you wanted to sort in reverse order, you could make line 3 return 1; and line 5 return -1.
-      */
-
-         return x.cases <  y.cases ? 1 : x.cases  > y.cases ? -1 : 0;
-        // return x.cases > y.cases ? -1 : 1;
-    })
+    let sortedData = [...data];
+    sortedData.sort((a, b) => {
+        if (a.cases > b.cases) {
+            return -1;
+        } else {
+            return 1;
+        }
+    });
     return sortedData;
-}
+};
+
+export const prettyPrintStat = (stat) =>
+    stat ? `+${numeral(stat).format("0.0a")}` : "+0";
+
+export const showDataOnMap = (data, casesType = "cases") =>
+    data.map((country) => (
+        <Circle
+            center={[country.countryInfo.lat, country.countryInfo.long]}
+            color={casesTypeColors[casesType].hex}
+            fillColor={casesTypeColors[casesType].hex}
+            fillOpacity={0.4}
+            radius={
+                Math.sqrt(country[casesType]) * casesTypeColors[casesType].multiplier
+            }
+        >
+            <Popup>
+                <div className="info-container">
+                    <div
+                        className="info-flag"
+                        style={{ backgroundImage: `url(${country.countryInfo.flag})` }}
+                    ></div>
+                    <div className="info-name">{country.country}</div>
+                    <div className="info-confirmed">
+                        Cases: {numeral(country.cases).format("0,0")}
+                    </div>
+                    <div className="info-recovered">
+                        Recovered: {numeral(country.recovered).format("0,0")}
+                    </div>
+                    <div className="info-deaths">
+                        Deaths: {numeral(country.deaths).format("0,0")}
+                    </div>
+                </div>
+            </Popup>
+        </Circle>
+    ));
